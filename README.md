@@ -1,6 +1,6 @@
 # 🥗 Eat Better
 
-A full-stack **healthy food ordering** demo: a React storefront backed by an ASP.NET Core headless CMS, deployable as a single Docker container.
+一个**简单的食物订购网页**：浏览菜单 → 加入购物车 → 免注册下单。React storefront + ASP.NET Core 无头 CMS 后端，单容器 Docker 部署。
 
 ![React](https://img.shields.io/badge/React_19-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
@@ -8,6 +8,16 @@ A full-stack **healthy food ordering** demo: a React storefront backed by an ASP
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core_9-512BD4?style=flat-square&logo=dotnet&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=flat-square&logo=sqlite&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
+
+## 📸 Screenshots
+
+| Home | Product Detail |
+| ---- | -------------- |
+| ![Home](docs/screenshots/home.png) | ![Product detail](docs/screenshots/product.png) |
+
+| Cart | Order Confirmed |
+| ---- | --------------- |
+| ![Cart](docs/screenshots/cart.png) | ![Order confirmed](docs/screenshots/order.png) |
 
 ## ✨ Features
 
