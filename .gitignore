@@ -1,6 +1,21 @@
-backend/obj/
+# OS / IDE
+.DS_Store
+.idea/
+.vs/
+.vscode/
+
+# .NET build output
 backend/bin/
+backend/obj/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Built frontend + runtime uploads (generated at build/run time)
+backend/wwwroot/
+
+# SQLite
 *.db
 *.db-shm
 *.db-wal
-.idea/

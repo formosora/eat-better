@@ -1,167 +1,120 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
-interface CartItem {
-    productId: number;
-    name: string;
-    price: string;
-    quantity: number;
-    totalPrice: string;
-}
+import { cartTotal, clearCart, loadCart } from '../cart';
+import { createOrder, formatPrice, loginAsGuest } from '../api';
+import type { CartItem } from '../types';
 
 const Cart = () => {
-    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [items, setItems] = useState<CartItem[]>([]);
+    const [name, setName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const storedCart = localStorage.getItem('shopping_cart');
-        if (storedCart) {
-            setCartItems(JSON.parse(storedCart));
-        }
+        setItems(loadCart());
     }, []);
 
-    const [name, setName] = useState('');
-    const [phone, setPhone] = useState('');
-
-    const clearCart = () => {
-        localStorage.removeItem('shopping_cart');
-        setCartItems([]);
+    const handleClear = () => {
+        clearCart();
+        setItems([]);
     };
 
     const submitOrder = async () => {
-        if (!name || !phone) {
-            alert('Please enter Name and Phone Number');
+        if (!name.trim() || !phone.trim()) {
+            setError('Please enter your name and phone number.');
             return;
         }
-
+        setError(null);
+        setSubmitting(true);
         try {
-            // 1. Sign in as temp user
-            const loginRes = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    "usernameOrEmail": "__guest_",
-                    "password": "guest1!"
-                }),
-                credentials: 'include' // Important to receive cookies
-            });
-
-            const items = cartItems.map(item => ({
-                "product": { "id": item.productId },
-                "count": item.quantity
-            }));
-            if (!loginRes.ok) throw new Error('Login failed');
-
-            // 2. Create Order
-            const orderRes: any = await fetch('/api/entities/order/insert', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    name,
-                    phone,
-                    items
-                }),
-                credentials: 'include' // Send cookies
-            });
-
-            if (!orderRes.ok) throw new Error('Failed to create order');
-            const orderData = await orderRes.json();
-            const orderId = orderData.id;
-
-
-
-            alert('Order submitted successfully!');
-            clearCart();
-            navigate(`/orderConfirm/${orderId}`);
-
-        } catch (error) {
-            console.error(error);
-            alert('Error submitting order');
+            await loginAsGuest();
+            const order = await createOrder(
+                name.trim(),
+                phone.trim(),
+                items.map(i => ({ product: { id: i.productId }, count: i.quantity }))
+            );
+            handleClear();
+            navigate(`/orderConfirm/${order.id}`);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to submit order');
+            setSubmitting(false);
         }
     };
 
+    if (items.length === 0) {
+        return (
+            <div className="container page">
+                <div className="empty-state">
+                    <h1>Your cart is empty</h1>
+                    <p>Browse the menu and add something delicious.</p>
+                    <Link to="/" className="btn btn-primary">Back to Shopping</Link>
+                </div>
+            </div>
+        );
+    }
+
     return (
-        <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <Link to="/" style={{ textDecoration: 'none', color: '#007bff' }}>
-                    &larr; Back to Shopping
-                </Link>
+        <div className="container page">
+            <div className="page-header">
                 <h1>My Cart</h1>
-                {cartItems.length > 0 &&
-                    <button
-                        onClick={clearCart}
-                        style={{ padding: '5px 10px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                    >
-                        Clear Cart
-                    </button>
-                }
+                <button className="btn btn-danger" onClick={handleClear}>Clear Cart</button>
             </div>
 
-            {cartItems.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#666', marginTop: '40px' }}>
-                    <h2>Your cart is empty</h2>
-                    <p>Go back to the homepage to browse products.</p>
-                </div>
-            ) : (
-                <>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '20px' }}>
-                        <thead>
-                            <tr style={{ borderBottom: '2px solid #ddd', textAlign: 'left' }}>
-                                <th style={{ padding: '10px' }}>Product</th>
-                                <th style={{ padding: '10px' }}>Price</th>
-                                <th style={{ padding: '10px' }}>Quantity</th>
-                                <th style={{ padding: '10px' }}>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {cartItems.map((item, index) => (
-                                <tr key={index} style={{ borderBottom: '1px solid #eee' }}>
-                                    <td style={{ padding: '10px' }}>{item.name}</td>
-                                    <td style={{ padding: '10px' }}>${item.price}</td>
-                                    <td style={{ padding: '10px' }}>{item.quantity}</td>
-                                    <td style={{ padding: '10px' }}>${item.totalPrice}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+            <table className="cart-table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {items.map(item => (
+                        <tr key={item.productId}>
+                            <td>{item.name}</td>
+                            <td>{formatPrice(item.price)}</td>
+                            <td>{item.quantity}</td>
+                            <td>{formatPrice(item.totalPrice)}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            <p className="cart-total">Total: {formatPrice(cartTotal(items))}</p>
 
-                    <div style={{ marginTop: '40px', borderTop: '2px solid #eee', paddingTop: '20px' }}>
-                        <h2>Checkout</h2>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Name (姓名):</label>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={e => setName(e.target.value)}
-                                style={{ padding: '8px', width: '100%', maxWidth: '300px' }}
-                            />
-                        </div>
-                        <div style={{ marginBottom: '15px' }}>
-                            <label style={{ display: 'block', marginBottom: '5px' }}>Mobile Number (手机号码):</label>
-                            <input
-                                type="text"
-                                value={phone}
-                                onChange={e => setPhone(e.target.value)}
-                                style={{ padding: '8px', width: '100%', maxWidth: '300px' }}
-                            />
-                        </div>
-                        <button
-                            onClick={submitOrder}
-                            style={{
-                                padding: '12px 24px',
-                                backgroundColor: '#28a745',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '5px',
-                                cursor: 'pointer',
-                                fontSize: '1.1em'
-                            }}
-                        >
-                            Submit Order (提交订单)
-                        </button>
-                    </div>
-                </>
-            )}
+            <section className="checkout">
+                <h2>Checkout</h2>
+                {error && <div className="alert alert-error">{error}</div>}
+                <div className="field">
+                    <label htmlFor="name">Name</label>
+                    <input
+                        id="name"
+                        type="text"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                        placeholder="Your name"
+                    />
+                </div>
+                <div className="field">
+                    <label htmlFor="phone">Phone</label>
+                    <input
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={e => setPhone(e.target.value)}
+                        placeholder="09xx-xxx-xxx"
+                    />
+                </div>
+                <button
+                    className="btn btn-primary btn-lg"
+                    onClick={submitOrder}
+                    disabled={submitting}
+                >
+                    {submitting ? 'Submitting…' : 'Submit Order'}
+                </button>
+            </section>
         </div>
     );
 };

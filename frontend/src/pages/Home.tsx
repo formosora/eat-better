@@ -1,80 +1,48 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
-interface Product {
-    id: number;
-    name: string;
-    salePrice: string;
-    pictures: {
-        url: string;
-    } | null;
-    __record_id: number;
-    hasPreviousPage: boolean;
-    hasNextPage: boolean;
-}
+import { formatPrice, getProducts } from '../api';
+import type { Product } from '../types';
 
 const Home = () => {
     const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        // Fetching from the backend API
-        fetch('/api/queries/products')
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return res.json();
-            })
-            .then((data: Product[]) => {
-                setProducts(data);
-                setLoading(false);
-            })
-            .catch(err => {
-                if (err instanceof Error) {
-                    setError(err.message);
-                } else {
-                    setError('An unknown error occurred');
-                }
-                setLoading(false);
-            });
+        getProducts()
+            .then(setProducts)
+            .catch(err => setError(err instanceof Error ? err.message : 'Failed to load products'))
+            .finally(() => setLoading(false));
     }, []);
 
-    if (loading) return <div>Loading...</div>;
-    if (error) return <div>Error: {error}</div>;
-
     return (
-        <div style={{ padding: '20px' }}>
-            <h1>All Products</h1>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '20px' }}>
-                {products.map(product => (
-                    <div key={product.id} style={{ border: '1px solid #ddd', borderRadius: '8px', padding: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                        {product.pictures && (
-                            <img
-                                src={`http://localhost:5265${product.pictures.url}`}
-                                alt={product.name}
-                                style={{ width: '100%', height: '200px', objectFit: 'cover', borderRadius: '4px', marginBottom: '10px' }}
-                            />
-                        )}
-                        <h3 style={{ margin: '0 0 10px 0' }}>{product.name}</h3>
-                        <p style={{ margin: '0 0 10px 0', color: '#666' }}>Price: £{product.salePrice}</p>
-                        <Link
-                            to={`/${product.id}`}
-                            style={{
-                                display: 'inline-block',
-                                padding: '8px 16px',
-                                backgroundColor: '#007bff',
-                                color: 'white',
-                                textDecoration: 'none',
-                                borderRadius: '4px'
-                            }}
-                        >
-                            View Details
-                        </Link>
-                    </div>
-                ))}
-            </div>
+        <div className="container page">
+            <section className="hero">
+                <h1>Eat fresh, eat better.</h1>
+                <p>Hand-picked healthy meals made from fresh ingredients. Order online in seconds.</p>
+            </section>
+
+            {loading && <div className="status">Loading products…</div>}
+            {error && <div className="alert alert-error">Failed to load products: {error}</div>}
+
+            {!loading && !error && (
+                <div className="product-grid">
+                    {products.map(product => (
+                        <article key={product.id} className="product-card">
+                            {product.pictures && (
+                                <img src={product.pictures.url} alt={product.name} loading="lazy" />
+                            )}
+                            <div className="product-card-body">
+                                <h3 className="product-name">{product.name}</h3>
+                                <p className="price">{formatPrice(product.salePrice)}</p>
+                                <Link to={`/${product.id}`} className="btn btn-primary">
+                                    View Details
+                                </Link>
+                            </div>
+                        </article>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

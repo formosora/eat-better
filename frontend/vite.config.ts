@@ -6,10 +6,15 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
+      // FormCMS API
       '/api': {
         target: 'http://127.0.0.1:5265',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/api')
+        changeOrigin: true
+      },
+      // Product images / uploaded files served by the backend
+      '/files': {
+        target: 'http://127.0.0.1:5265',
+        changeOrigin: true
       }
     }
   },
