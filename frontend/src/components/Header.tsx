@@ -4,7 +4,7 @@ const Header = () => (
     <header className="site-header">
         <div className="container">
             <Link to="/" className="brand">
-                🥗 Eat<span>Better</span>
+                🥗 Fresh<span>Bite</span>
             </Link>
             <nav className="site-nav">
                 <Link to="/" className="nav-link">Home</Link>

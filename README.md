@@ -1,4 +1,4 @@
-# 🥗 Eat Better
+# 🥗 FreshBite
 
 A **simple food-ordering web app**: browse the menu → add to cart → check out as a guest. React storefront + ASP.NET Core headless CMS backend, deployed as a single Docker container.
 
@@ -39,7 +39,7 @@ A **simple food-ordering web app**: browse the menu → add to cart → check ou
 ## 📁 Project Structure
 
 ```
-eat-better/
+freshbite/
 ├── backend/                 # ASP.NET Core + FormCMS API (port 5265)
 │   ├── Program.cs           # CORS, CMS, auth and SPA fallback wiring
 │   └── AppDbContext.cs      # Identity DbContext
@@ -82,16 +82,16 @@ npm run build   # outputs to backend/wwwroot
 ## 🐳 Docker Deployment
 
 ```bash
-docker build -t eat-better .
+docker build -t freshbite .
 
 # Keep the SQLite database on a host volume so data survives updates
 docker run -d \
-  --name eat-better \
+  --name freshbite \
   --restart unless-stopped \
   -p 80:8080 \
-  -v ~/eat-better-data:/app/data \
+  -v ~/freshbite-data:/app/data \
   -e ConnectionStrings__DefaultConnection="Data Source=data/cms.db" \
-  eat-better
+  freshbite
 ```
 
 ## 🔌 API Surface (used by the storefront)
