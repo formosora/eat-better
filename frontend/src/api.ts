@@ -46,4 +46,8 @@ export async function getOrderItems(orderId: string): Promise<OrderItem[]> {
     return data.items;
 }
 
-export const formatPrice = (price: string | number): string => `NT$ ${price}`;
+/** "180" / "360.00" -> "NT$ 180" / "NT$ 360"; keeps decimals only when real. */
+export const formatPrice = (price: string | number): string => {
+    const n = typeof price === 'number' ? price : Number(price);
+    return Number.isFinite(n) && Number.isInteger(n) ? `NT$ ${n}` : `NT$ ${price}`;
+};
