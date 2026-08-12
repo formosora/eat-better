@@ -1,6 +1,6 @@
 # 🥗 Eat Better
 
-一个**简单的食物订购网页**：浏览菜单 → 加入购物车 → 免注册下单。React storefront + ASP.NET Core 无头 CMS 后端，单容器 Docker 部署。
+A **simple food-ordering web app**: browse the menu → add to cart → check out as a guest. React storefront + ASP.NET Core headless CMS backend, deployed as a single Docker container.
 
 ![React](https://img.shields.io/badge/React_19-61DAFB?style=flat-square&logo=react&logoColor=black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
